@@ -5,21 +5,22 @@ import time
 import sys
 import requests
 from os import mkdir
-import json
+try:
+    sys.path.insert(1, '../lib')
+    from libexports import is_debug_mode, get_api_data
+except:
+    print(' [WARNING] Custom library libexports not found in lib')
 
-DEBUG_MODE = len(sys.argv) == 2 and sys.argv[1] == '--debug'
+DEBUG_MODE = is_debug_mode(sys.argv)
 
 try: mkdir('test')
 except FileExistsError: pass
 
 typeid = 'group'
-try:
-    with open('../apikeys.json', 'r') as f:
-        data = json.load(f)
-        apiKey = data['dubi']
-        guid = data['dubi-group']
-        f.close()
-except FileNotFoundError:
+if get_api_data('dubi') is not None:
+    apiKey = get_api_data('dubi')[0]
+    guid = get_api_data('dubi')[1]
+else:
     sys.exit("Fatal: API keys not provided.")
 
 baseurl = "https://test-01.dlls.univr.it/cantaloupe/iiif/3/dubi%2F"

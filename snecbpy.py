@@ -8,23 +8,23 @@ import time
 import sys
 from datetime import datetime
 from os import mkdir
-import json
+try:
+    sys.path.insert(1, '../lib')
+    from libexports import is_debug_mode, get_api_data
+except:
+    print(' [WARNING] Custom library libexports not found in lib')
 
 #SCRIPT SNORRI
 
-DEBUG_MODE = False
-ALL_STEPS = False
+DEBUG_MODE = is_debug_mode(sys.argv)
 LIMIT = 30 #solo per debug: documenti da scaricare anziché everything
 
 #########Zotero data CONNECTION########
 typeid = 'group'
-try:
-    with open('../apikeys.json', 'r') as f:
-        data = json.load(f)
-        apiKey = data['snorri']
-        guid = data['snorri-group']
-        f.close()
-except FileNotFoundError:
+if get_api_data('snorri') is not None:
+    apiKey = get_api_data('snorri')[0]
+    guid = get_api_data('snorri')[1]
+else:
     sys.exit("Fatal: API keys not provided.")
 #####################################
 
@@ -131,7 +131,7 @@ for index, item in enumerate(items):
 
     if DEBUG_MODE: print(index + 1)
 
-    if DEBUG_MODE and ALL_STEPS:
+    if DEBUG_MODE:
         print(f"[DEBUG] ITEM DATA FOR {item['data']['key']}:")
         print(item)
         try: a = input('DEBUG STOP...')
