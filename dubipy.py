@@ -31,8 +31,8 @@ def check_iiif_image(imagename):
         r = requests.head(baseurl+imagename+footerurl)
         if str(r.status_code) == "200":
             return True
-        else:
-            return False
+        return False
+    
     except requests.ConnectionError:
         return False
 
@@ -47,6 +47,8 @@ def getNotes(itemkey):
     try:
         notes = zot.children(itemkey)
         return notes
+    except KeyboardInterrupt:
+        sys.exit('Manually interrupted export.')
     except:
         print('Impossibile ottenere le note per questa item '+itemkey)
         print('Aspetto 30s')
@@ -59,6 +61,8 @@ try:
     print('Downloading Zotero data...')
     zot = zotero.Zotero(guid, typeid, apiKey)
     items = zot.everything(zot.top())
+except KeyboardInterrupt:
+    sys.exit('Manually interrupted download.')
 except pyzotero.zotero_errors.HTTPError as e:
     sys.exit(f'Errore a monte da Zotero: {e}')
 
@@ -98,4 +102,3 @@ for item in items:
             time.sleep(0.5)
             print(' Manually interrupted.')
             break
-
