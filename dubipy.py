@@ -23,17 +23,23 @@ if get_api_data('dubi') is not None:
 else:
     sys.exit("Fatal: API keys not provided.")
 
-baseurl = "https://test-01.dlls.univr.it/cantaloupe/iiif/3/dubi%2F"
+baseurl = "https://dh.dlls.univr.it/iiif/3/dubi%2F"
 
+image_count = 0
 def check_iiif_image(imagename):
+    global image_count
     footerurl = ".jpg/full/92,/0/default.jpg"
     try:
         r = requests.head(baseurl+imagename+footerurl)
         if str(r.status_code) == "200":
+            image_count += 1
+            print(f'IIIF image found (tot. {image_count})')
             return True
+        
         return False
     
     except requests.ConnectionError:
+        print('Connection error while retrieving image.')
         return False
 
 def createXMLfile(key, body):
@@ -57,6 +63,7 @@ def getNotes(itemkey):
         getNotes(itemkey)
 
 count = 0
+noimages = 0
 try:
     print('Downloading Zotero data...')
     zot = zotero.Zotero(guid, typeid, apiKey)
@@ -67,6 +74,7 @@ except pyzotero.zotero_errors.HTTPError as e:
     sys.exit(f'Errore a monte da Zotero: {e}')
 
 for item in items:
+    imagename = item['data']['series']
     if DEBUG_MODE:
         print(' DEBUG: full item')
         print(item)
@@ -79,13 +87,14 @@ for item in items:
         if itemNotes:
             item['data']['notes'] = [note['data'] for note in itemNotes]
         
-        if item['data']['series']:
-            item['data']['ckimage'] = check_iiif_image(item['data']['series'])
+        if imagename:
+            item['data']['ckimage'] = check_iiif_image(imagename)
         else:
             item['data']['ckimage'] = False
+            noimages += 1
     
     count += 1    
-    print(f'{count}/{len(items)} ({round(count/len(items)*100, 1)}%)')
+    print(f' [{round(count/len(items)*100, 1)}%] {count}/{len(items)} id: {item["data"]["key"]} image: {imagename}')
 
     xml = generateItem(item['data'], items, guid ) #corpo dati completo (corretto), items, group id
     
@@ -102,3 +111,5 @@ for item in items:
             time.sleep(0.5)
             print(' Manually interrupted.')
             break
+
+print(f'Done. Found {image_count} images for {count-noimages} documents with images (total: {count}).')
