@@ -1,6 +1,6 @@
 from pyzotero import zotero
-from snorritei import generateItem
-from snorritei import getBibCitation
+from snecbtei import generateItem
+from snecbtei import getBibCitation
 import itertools
 import threading
 import html
