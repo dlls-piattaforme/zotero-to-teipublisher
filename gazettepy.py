@@ -52,7 +52,7 @@ for item in items:
     if not item['data']['title']: #non considerare elementi vuoti (titolo è dato obbligatorio, se non c'è allora si assume che l'elemento sia vuoto)
         continue
 
-    xml = generateItem(item['data'], items, guid ) #corpo dati completo (corretto), items, group id
+    xml = generateItem(item['data'], guid ) #corpo dati completo (corretto), items, group id
     
     if DEBUG_MODE:
         print(' DEBUG: expected xml body:')
