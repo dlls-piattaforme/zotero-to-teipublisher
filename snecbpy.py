@@ -90,23 +90,48 @@ def cleanCit(citbb):
         citbb[0] = citbb[0][:-1]
         return citbb[0]
 
-###################################################################################
-#Funzione che restituisce la citazione bibliografica con stile chicago ( se va in errore attende e riprova )
-def getCit(itemkey):
-    
+exception_container = ''
+cleanCit_container = ''
+def getCit_wrapper(itemkey):
+    global exception_container, cleanCit_container
+    exception_container = ''
+    cleanCit_container = '' #reset them each time, just in case
+
     try:
         cit = zot.item(itemkey, content='bib', style='chicago-fullnote-bibliography', limit=None) #limit=None risolve il limite default dei 100 importato da pyzotero
         if cit:
-            return cleanCit(cit)
+            cleanCit_container = cleanCit(cit)
         else:
             print('\n[ERROR on '+itemkey+']\n'+cit+'\n')
+        
+        exception_container = ''
+        return True
     except Exception as e:
-        print('['+itemkey+f'] - Error: {e}') #EDIT: exception e per debug download xml rotti o falliti
-        cit = zot.item(itemkey, content='bib', style='chicago-fullnote-bibliography', limit=None)
+        exception_container = str(e)
+        return False
+
+###################################################################################
+#Funzione che restituisce la citazione bibliografica con stile chicago ( se va in errore attende e riprova )
+def getCit(itemkey):
+    global exception_container, cleanCit_container
+
+    while not getCit_wrapper(itemkey):
+        print('['+itemkey+f'] - Error: {exception_container}') #EDIT: exception e per debug download xml rotti o falliti
+        #cit = zot.item(itemkey, content='bib', style='chicago-fullnote-bibliography', limit=LIMIT)
         print('Waiting 50s to recover...')
-        time.sleep(50.0)
-        return cleanCit(cit)
+        
+        try:
+            for n in range(50): 
+                time.sleep(1)
+                print(n, end='\r')
+        except KeyboardInterrupt:
+            time.sleep(0.5)
+            print('\nManually interrupted script.')
+            sys.exit()
+
+        print('')
     
+    return cleanCit_container
 
 print('\n['+datetime.now().strftime("%H:%M:%S")+'] - Download Citations\nCirca 1h necessaria')
 
